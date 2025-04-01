@@ -1,9 +1,8 @@
-// Update App.js
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import LifeTracker from './components/game/LifeTracker';
-import CardBrowser from './components/cards/CardBrowser';
-import Settings from './components/settings/Settings';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CardProvider } from './context/cardContext';
+import LifeTracker from './components/game/LifeTracker';
+import Settings from './components/settings/Settings';
 
 function App() {
   return (
@@ -12,7 +11,6 @@ function App() {
         <div className="bg-gray-900 text-white min-h-screen">
           <Routes>
             <Route path="/" element={<LifeTracker />} />
-            <Route path="/cards" element={<CardBrowser />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </div>

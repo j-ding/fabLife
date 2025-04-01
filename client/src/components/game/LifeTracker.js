@@ -1,14 +1,13 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { Heart, Menu, Plus, Minus, RotateCcw, Shield, Users, X } from 'lucide-react';
-import { CardContext } from '../../context/CardContext';
-import HeroSelector from '../HeroSelector';
+import { Heart, Menu, Plus, Minus, RotateCcw, Shield, Settings, X } from 'lucide-react';
+import { CardContext } from '../../context/cardContext';
+import HeroSelector from './HeroSelector';
 
 const LifeTracker = () => {
-  // Game format state
-  const { gameFormat, updateGameFormat, heroes, loading } = useContext(CardContext);
+  // Get data from context
+  const { heroes, loading, gameFormat, updateGameFormat } = useContext(CardContext);
   
   // Game state
-  const [activeTab, setActiveTab] = useState('game');
   const [playerLife, setPlayerLife] = useState(gameFormat === 'blitz' ? 20 : 40);
   const [opponentLife, setOpponentLife] = useState(gameFormat === 'blitz' ? 20 : 40);
   
@@ -39,13 +38,13 @@ const LifeTracker = () => {
   useEffect(() => {
     if (!loading && heroes.length > 0) {
       // Select default heroes if none selected yet
-      if (hero === '') {
+      if (!hero) {
         const defaultHero = heroes[0];
         setHero(defaultHero.name);
         setPlayerLife(defaultHero.base_health);
       }
       
-      if (opponentHero === '') {
+      if (!opponentHero) {
         const defaultOpponent = heroes.length > 1 ? heroes[1] : heroes[0];
         setOpponentHero(defaultOpponent.name);
         setOpponentLife(defaultOpponent.base_health);
@@ -55,20 +54,16 @@ const LifeTracker = () => {
 
   // Update life totals when game format changes
   useEffect(() => {
-    if (gameFormat === 'blitz') {
-      setPlayerLife(20);
-      setOpponentLife(20);
-    } else {
-      setPlayerLife(40);
-      setOpponentLife(40);
-    }
+    const defaultHealth = gameFormat === 'blitz' ? 20 : 40;
+    setPlayerLife(defaultHealth);
+    setOpponentLife(defaultHealth);
     
     // Reset life history
     setPlayerLifeHistory([
-      { value: gameFormat === 'blitz' ? 20 : 40, change: 0, timestamp: new Date().toISOString(), note: 'Game started' }
+      { value: defaultHealth, change: 0, timestamp: new Date().toISOString(), note: 'Game started' }
     ]);
     setOpponentLifeHistory([
-      { value: gameFormat === 'blitz' ? 20 : 40, change: 0, timestamp: new Date().toISOString(), note: 'Game started' }
+      { value: defaultHealth, change: 0, timestamp: new Date().toISOString(), note: 'Game started' }
     ]);
   }, [gameFormat]);
 
@@ -90,7 +85,7 @@ const LifeTracker = () => {
     setShowHeroSelector(false);
   };
 
-  // Handle player life changes with rapid change detection
+  // Handle player life change with rapid change consolidation
   const changePlayerLife = (amount) => {
     const newLife = Math.max(0, playerLife + amount);
     setPlayerLife(newLife);
@@ -100,8 +95,8 @@ const LifeTracker = () => {
     
     // Check if this is a rapid change (within threshold)
     if (timeDiff < RAPID_CHANGE_THRESHOLD && 
-        (amount < 0 && lastPlayerChange.amount < 0) || 
-        (amount > 0 && lastPlayerChange.amount > 0)) {
+        ((amount < 0 && lastPlayerChange.amount < 0) || 
+         (amount > 0 && lastPlayerChange.amount > 0))) {
       // Update the last history entry instead of creating a new one
       const updatedHistory = [...playerLifeHistory];
       const lastEntry = updatedHistory.pop();
@@ -132,7 +127,7 @@ const LifeTracker = () => {
     }
   };
 
-  // Handle opponent life changes with rapid change detection
+  // Handle opponent life change
   const changeOpponentLife = (amount) => {
     const newLife = Math.max(0, opponentLife + amount);
     setOpponentLife(newLife);
@@ -140,10 +135,10 @@ const LifeTracker = () => {
     const now = Date.now();
     const timeDiff = now - lastOpponentChange.time;
     
-    // Check if this is a rapid change (within threshold)
+    // Check if this is a rapid change
     if (timeDiff < RAPID_CHANGE_THRESHOLD && 
-        (amount < 0 && lastOpponentChange.amount < 0) || 
-        (amount > 0 && lastOpponentChange.amount > 0)) {
+        ((amount < 0 && lastOpponentChange.amount < 0) || 
+         (amount > 0 && lastOpponentChange.amount > 0))) {
       // Update the last history entry instead of creating a new one
       const updatedHistory = [...opponentLifeHistory];
       const lastEntry = updatedHistory.pop();
@@ -174,6 +169,10 @@ const LifeTracker = () => {
     }
   };
 
+  if (loading) {
+    return <div className="h-screen flex items-center justify-center">Loading...</div>;
+  }
+
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white">
       {/* Header */}
@@ -186,200 +185,112 @@ const LifeTracker = () => {
           <button className="p-2 rounded-full bg-red-800">
             <RotateCcw size={20} />
           </button>
-          <button className="p-2 rounded-full bg-red-800">
-            <Users size={20} />
+          <button 
+            className="p-2 rounded-full bg-red-800"
+            onClick={() => window.location.href = '/settings'}
+          >
+            <Settings size={20} />
           </button>
         </div>
       </header>
       
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
-        {activeTab === 'game' && (
-          <div className="flex-1 flex flex-col">
-            {/* Opponent Section (upside down) */}
-            <div className="flex-1 flex flex-col items-center justify-center transform rotate-180 p-4 bg-gray-800 border-b-2 border-red-900">
-              <div className="flex items-center mb-2">
-                <button
-                  className="text-lg font-semibold flex items-center" 
-                  onClick={() => {
-                    setSelectingFor('opponent');
-                    setShowHeroSelector(true);
-                  }}
-                >
-                  {opponentHero}
-                  <span className="ml-1 text-xs opacity-60">▼</span>
-                </button>
-              </div>
-              
-              <div className="bg-gray-700 p-2 rounded-lg shadow-inner flex items-center mb-4">
-                <Heart className="text-red-500 mr-2" size={24} />
-                <span className="text-3xl font-bold">{opponentLife}</span>
-              </div>
-              
-              <div className="flex space-x-4">
-                <button 
-                  className="p-3 rounded-full bg-red-800"
-                  onClick={() => changeOpponentLife(-1)}
-                >
-                  <Minus size={24} />
-                </button>
-                <button 
-                  className="p-3 rounded-full bg-green-700"
-                  onClick={() => changeOpponentLife(1)}
-                >
-                  <Plus size={24} />
-                </button>
-              </div>
-            </div>
-            
-            {/* Center Controls */}
-            <div className="bg-black py-2 flex justify-center space-x-4">
-              <button 
-                className={`p-2 rounded-md ${gameFormat === 'blitz' ? 'bg-red-800' : 'bg-gray-700'}`}
-                onClick={() => updateGameFormat('blitz')}
-              >
-                <span className="font-bold">B</span>
-              </button>
-              
-              <button 
-                className={`p-2 rounded-md ${gameFormat === 'cc' ? 'bg-red-800' : 'bg-gray-700'}`}
-                onClick={() => updateGameFormat('cc')}
-              >
-                <span className="font-bold">C</span>
-              </button>
-              
-              <button className="p-2 rounded-full bg-yellow-700">
-                <Shield size={20} />
-              </button>
-              <button 
-                className="p-2 rounded-full bg-blue-700"
-                onClick={() => setShowHistory(!showHistory)}
-              >
-                {showHistory ? <X size={20} /> : <span className="text-xs font-bold">LOG</span>}
-              </button>
-            </div>
-            
-            {/* Player Section */}
-            <div className="flex-1 flex flex-col items-center justify-center p-4 bg-gray-800">
-              <div className="flex items-center mb-2">
-                <button
-                  className="text-lg font-semibold flex items-center" 
-                  onClick={() => {
-                    setSelectingFor('player');
-                    setShowHeroSelector(true);
-                  }}
-                >
-                  {hero}
-                  <span className="ml-1 text-xs opacity-60">▼</span>
-                </button>
-              </div>
-              
-              <div className="bg-gray-700 p-2 rounded-lg shadow-inner flex items-center mb-4">
-                <Heart className="text-red-500 mr-2" size={24} />
-                <span className="text-3xl font-bold">{playerLife}</span>
-              </div>
-              
-              <div className="flex space-x-4">
-                <button 
-                  className="p-4 rounded-full bg-red-800"
-                  onClick={() => changePlayerLife(-1)}
-                >
-                  <Minus size={28} />
-                </button>
-                <button 
-                  className="p-4 rounded-full bg-green-700"
-                  onClick={() => changePlayerLife(1)}
-                >
-                  <Plus size={28} />
-                </button>
-              </div>
-            </div>
+        {/* Opponent Section (upside down) */}
+        <div className="flex-1 flex flex-col items-center justify-center transform rotate-180 p-4 bg-gray-800 border-b-2 border-red-900">
+          <div className="flex items-center mb-2">
+            <button
+              className="text-lg font-semibold flex items-center" 
+              onClick={() => {
+                setSelectingFor('opponent');
+                setShowHeroSelector(true);
+              }}
+            >
+              {opponentHero}
+              <span className="ml-1 text-xs opacity-60">▼</span>
+            </button>
           </div>
-        )}
+          
+          <div className="bg-gray-700 p-2 rounded-lg shadow-inner flex items-center mb-4">
+            <Heart className="text-red-500 mr-2" size={24} />
+            <span className="text-3xl font-bold">{opponentLife}</span>
+          </div>
+          
+          <div className="flex space-x-4">
+            <button 
+              className="p-3 rounded-full bg-red-800"
+              onClick={() => changeOpponentLife(-1)}
+            >
+              <Minus size={24} />
+            </button>
+            <button 
+              className="p-3 rounded-full bg-green-700"
+              onClick={() => changeOpponentLife(1)}
+            >
+              <Plus size={24} />
+            </button>
+          </div>
+        </div>
         
-        {activeTab === 'heroes' && (
-          <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">Hero Selection</h2>
-            <HeroSelector 
-              onSelectHero={(hero) => handleSelectHero(hero)}
-              isPlayer={true}
-            />
-          </div>
-        )}
+        {/* Center Controls */}
+        <div className="bg-black py-2 flex justify-center space-x-4">
+          <button 
+            className={`p-2 rounded-md ${gameFormat === 'blitz' ? 'bg-red-800' : 'bg-gray-700'}`}
+            onClick={() => updateGameFormat('blitz')}
+          >
+            <span className="font-bold">B</span>
+          </button>
+          
+          <button 
+            className={`p-2 rounded-md ${gameFormat === 'cc' ? 'bg-red-800' : 'bg-gray-700'}`}
+            onClick={() => updateGameFormat('cc')}
+          >
+            <span className="font-bold">C</span>
+          </button>
+          
+          <button 
+            className="p-2 rounded-full bg-blue-700"
+            onClick={() => setShowHistory(!showHistory)}
+          >
+            {showHistory ? <X size={20} /> : <span className="text-xs font-bold">LOG</span>}
+          </button>
+        </div>
         
-        {activeTab === 'history' && (
-          <div className="p-4 flex flex-col h-full">
-            <h2 className="text-xl font-bold mb-4">Match History</h2>
-            
-            <div className="flex-1 overflow-y-auto">
-              <div className="bg-gray-800 rounded-lg p-3 mb-3">
-                <div className="flex justify-between items-center mb-2">
-                  <div>
-                    <span className="font-bold">Current Match</span>
-                    <div className="text-sm text-gray-400">vs {opponentHero}</div>
-                  </div>
-                  <button 
-                    className="p-2 bg-blue-700 rounded-md text-xs font-bold"
-                    onClick={() => setShowHistory(true)}
-                  >
-                    VIEW LOG
-                  </button>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <div>
-                    <span className="text-gray-400">Started:</span> {new Date(playerLifeHistory[0].timestamp).toLocaleTimeString()}
-                  </div>
-                  <div>
-                    <span className="text-green-500">{hero}</span> {playerLife} | {opponentLife} <span className="text-red-500">{opponentHero}</span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Sample past matches - Replace with actual data from API */}
-              <div className="bg-gray-800 rounded-lg p-3 mb-3 opacity-70">
-                <div className="flex justify-between items-center mb-2">
-                  <div>
-                    <span className="font-bold">match-1680215489</span>
-                    <div className="text-sm text-gray-400">vs Bravo</div>
-                  </div>
-                  <button className="p-2 bg-blue-700 rounded-md text-xs font-bold">
-                    VIEW LOG
-                  </button>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <div>
-                    <span className="text-gray-400">Completed:</span> Yesterday
-                  </div>
-                  <div className="font-medium">
-                    <span className="text-green-500">Dorinthea</span> 0 | 20 <span className="text-red-500">Bravo</span>
-                    <span className="ml-2 bg-red-900 px-2 py-1 rounded text-xs">DEFEAT</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-gray-800 rounded-lg p-3 mb-3 opacity-70">
-                <div className="flex justify-between items-center mb-2">
-                  <div>
-                    <span className="font-bold">match-1680208277</span>
-                    <div className="text-sm text-gray-400">vs Katsu</div>
-                  </div>
-                  <button className="p-2 bg-blue-700 rounded-md text-xs font-bold">
-                    VIEW LOG
-                  </button>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <div>
-                    <span className="text-gray-400">Completed:</span> Yesterday
-                  </div>
-                  <div className="font-medium">
-                    <span className="text-green-500">Dorinthea</span> 5 | 0 <span className="text-red-500">Katsu</span>
-                    <span className="ml-2 bg-green-700 px-2 py-1 rounded text-xs">VICTORY</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* Player Section */}
+        <div className="flex-1 flex flex-col items-center justify-center p-4 bg-gray-800">
+          <div className="flex items-center mb-2">
+            <button
+              className="text-lg font-semibold flex items-center" 
+              onClick={() => {
+                setSelectingFor('player');
+                setShowHeroSelector(true);
+              }}
+            >
+              {hero}
+              <span className="ml-1 text-xs opacity-60">▼</span>
+            </button>
           </div>
-        )}
+          
+          <div className="bg-gray-700 p-2 rounded-lg shadow-inner flex items-center mb-4">
+            <Heart className="text-red-500 mr-2" size={24} />
+            <span className="text-3xl font-bold">{playerLife}</span>
+          </div>
+          
+          <div className="flex space-x-4">
+            <button 
+              className="p-4 rounded-full bg-red-800"
+              onClick={() => changePlayerLife(-1)}
+            >
+              <Minus size={28} />
+            </button>
+            <button 
+              className="p-4 rounded-full bg-green-700"
+              onClick={() => changePlayerLife(1)}
+            >
+              <Plus size={28} />
+            </button>
+          </div>
+        </div>
         
         {/* Hero Selector Modal */}
         {showHeroSelector && (
@@ -396,10 +307,21 @@ const LifeTracker = () => {
               </button>
             </div>
             
-            <HeroSelector 
-              onSelectHero={handleSelectHero}
-              isPlayer={selectingFor === 'player'}
-            />
+            <div className="grid grid-cols-2 gap-4 overflow-y-auto">
+              {heroes.map(heroData => (
+                <button
+                  key={heroData.unique_id}
+                  className="p-4 bg-gray-800 rounded-lg flex flex-col items-center hover:bg-gray-700"
+                  onClick={() => handleSelectHero(heroData)}
+                >
+                  <div className="w-16 h-16 rounded-full bg-gray-700 mb-2 flex items-center justify-center">
+                    {heroData.name.charAt(0)}
+                  </div>
+                  <span className="font-medium text-center">{heroData.name}</span>
+                  <span className="text-xs text-gray-400">HP: {heroData.base_health}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
         
@@ -472,40 +394,6 @@ const LifeTracker = () => {
           </div>
         )}
       </main>
-      
-      {/* Bottom Navigation */}
-      <nav className="bg-gray-800 p-2 flex justify-around border-t border-red-900">
-        <button 
-          className={`p-2 rounded-md ${activeTab === 'game' ? 'bg-red-900' : ''}`}
-          onClick={() => setActiveTab('game')}
-        >
-          Game
-        </button>
-        <button 
-          className={`p-2 rounded-md ${activeTab === 'heroes' ? 'bg-red-900' : ''}`}
-          onClick={() => setActiveTab('heroes')}
-        >
-          Heroes
-        </button>
-        <button 
-          className={`p-2 rounded-md ${activeTab === 'stats' ? 'bg-red-900' : ''}`}
-          onClick={() => setActiveTab('stats')}
-        >
-          Stats
-        </button>
-        <button 
-          className={`p-2 rounded-md ${activeTab === 'history' ? 'bg-red-900' : ''}`}
-          onClick={() => setActiveTab('history')}
-        >
-          History
-        </button>
-        <button 
-          className={`p-2 rounded-md ${activeTab === 'cards' ? 'bg-red-900' : ''}`}
-          onClick={() => setActiveTab('cards')}
-        >
-          Cards
-        </button>
-      </nav>
     </div>
   );
 };
