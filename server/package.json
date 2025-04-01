@@ -1,6 +1,7 @@
 {
   "name": "fab-life-tracker-server",
   "version": "1.0.0",
+  "proxy": "http://localhost:5000",
   "description": "Flesh and Blood TCG life tracker application server",
   "main": "server.js",
   "scripts": {

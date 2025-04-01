@@ -6,7 +6,7 @@ const Card = require('../models/card');
 const Hero = require('../models/hero');
 
 // Base URLs for raw GitHub content
-const BASE_URL = 'https://raw.githubusercontent.com/the-fab-cube/flesh-and-blood-cards/main';
+const BASE_URL = 'https://raw.githubusercontent.com/the-fab-cube/flesh-and-blood-cards/develop';
 const JSON_URL = `${BASE_URL}/json/english`;
 
 // Cache directory

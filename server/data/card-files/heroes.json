@@ -1,0 +1,46 @@
+[
+    {
+      "name": "Dorinthea (Young)",
+      "unique_id": "dorinthea-young",
+      "is_young": true,
+      "base_health": 20,
+      "hero_class": "Warrior",
+      "image_url": null,
+      "abilities": ["Reprise - If you've attacked with a weapon this turn, "],
+      "weapons": ["Dawnblade"],
+      "specializations": ["Swords"]
+    },
+    {
+      "name": "Dorinthea",
+      "unique_id": "dorinthea",
+      "is_young": false,
+      "base_health": 40,
+      "hero_class": "Warrior",
+      "image_url": null,
+      "abilities": ["Reprise - If you've attacked with a weapon this turn, "],
+      "weapons": ["Dawnblade"],
+      "specializations": ["Swords"]
+    },
+    {
+      "name": "Bravo (Young)",
+      "unique_id": "bravo-young",
+      "is_young": true,
+      "base_health": 20,
+      "hero_class": "Guardian",
+      "image_url": null,
+      "abilities": ["Dominate - If this attack hits, the defending hero cannot defend the next attack action card with more than 1 card from their hand this turn."],
+      "weapons": ["Anothos"],
+      "specializations": ["Hammers", "Earth"]
+    },
+    {
+      "name": "Bravo",
+      "unique_id": "bravo",
+      "is_young": false,
+      "base_health": 40,
+      "hero_class": "Guardian",
+      "image_url": null,
+      "abilities": ["Dominate - If this attack hits, the defending hero cannot defend the next attack action card with more than 1 card from their hand this turn."],
+      "weapons": ["Anothos"],
+      "specializations": ["Hammers", "Earth"]
+    }
+  ]
