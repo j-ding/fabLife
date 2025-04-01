@@ -27,4 +27,4 @@ const HeroSchema = new Schema({
   }
 });
 
-module.exports = mongoose.model('Hero', mongoose.connection.useDb('fabapp').collection('heroes'));
+module.exports = mongoose.model('Hero', HeroSchema, 'heroes');

@@ -84,4 +84,4 @@ const CardSchema = new Schema({
 // Index for faster searches
 CardSchema.index({ name: 'text', card_text: 'text' });
 
-module.exports = mongoose.model('Card', mongoose.connection.useDb('fabcards').collection('cards'));
+module.exports = mongoose.model('Card', CardSchema, 'cards');

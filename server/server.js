@@ -2,8 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+require('dotenv').config();
 const apiRoutes = require('./routes/api');
-const { importHeroes } = require('./utils/dataImporter');
 
 const app = express();
 
@@ -19,13 +19,6 @@ mongoose
   })
   .then(() => {
     console.log('Connected to MongoDB');
-    
-    // Import hero data if needed
-    if (process.env.IMPORT_DATA === 'true') {
-      importHeroes()
-        .then(() => console.log('Hero data imported successfully'))
-        .catch(err => console.error('Error importing hero data:', err));
-    }
   })
   .catch(err => console.error('Could not connect to MongoDB:', err));
 

@@ -1,4 +1,4 @@
-const Card = require('../models/Card');
+const Card = require('../models/card');
 
 // Get all cards with pagination
 exports.getAllCards = async (req, res) => {
